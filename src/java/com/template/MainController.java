@@ -7,11 +7,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 
 public class MainController {
 
@@ -21,7 +22,7 @@ public class MainController {
     @FXML private TextField txtNome;
     @FXML private TextField txtNacionalidade;
     @FXML private TextField txtEquipe;
-    @FXML private TextField txtAtivo;
+    @FXML private CheckBox cbAtivo;
 
     @FXML private TableView<Formula1DTO> tblPiloto;
 
@@ -38,45 +39,46 @@ public class MainController {
 
     @FXML
     private void initialize() {
-
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
         colNacionalidade.setCellValueFactory(new PropertyValueFactory<>("nacionalidade"));
         colEquipe.setCellValueFactory(new PropertyValueFactory<>("equipe"));
         colAtivo.setCellValueFactory(new PropertyValueFactory<>("ativo"));
 
-        carregarTabela();
+        try {
+            carregarPilotos();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Erro ao carregar pilotos na inicialização", e);
+        }
+    }
 
-        tblPiloto.getSelectionModel().selectedItemProperty().addListener(
-                (obs, oldValue, piloto) -> {
+    @FXML
+    private void carregarCampos(MouseEvent event) {
+        Formula1DTO piloto = tblPiloto.getSelectionModel().getSelectedItem();
 
-                    if (piloto != null) {
-                        txtNome.setText(piloto.getNome());
-                        txtNacionalidade.setText(piloto.getNacionalidade());
-                        txtEquipe.setText(piloto.getEquipe());
-                        txtAtivo.setText(String.valueOf(piloto.isAtivo()));
-                    }
-                });
+        if (piloto != null) {
+            txtNome.setText(piloto.getNome());
+            txtNacionalidade.setText(piloto.getNacionalidade());
+            txtEquipe.setText(piloto.getEquipe());
+            cbAtivo.setSelected(piloto.isAtivo());
+            logger.info("Campos preenchidos via clique na tabela para o piloto ID: " + piloto.getId());
+        }
     }
 
     @FXML
     private void btnCriarAction(ActionEvent event) {
-
         try {
-
             Formula1DTO dto = new Formula1DTO();
-
             dto.setNome(txtNome.getText());
             dto.setNacionalidade(txtNacionalidade.getText());
             dto.setEquipe(txtEquipe.getText());
-            dto.setAtivo(Boolean.parseBoolean(txtAtivo.getText()));
+            dto.setAtivo(cbAtivo.isSelected());
 
             if (dao.cadastrarPiloto(dto)) {
-                carregarTabela();
-                limparCampos();
+                carregarPilotos();
+                limparCamposFormulario();
                 logger.info("Piloto criado");
             }
-
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Erro ao criar piloto", e);
         }
@@ -84,26 +86,21 @@ public class MainController {
 
     @FXML
     private void btnAtualizarAction(ActionEvent event) {
-
         try {
-
-            Formula1DTO piloto =
-                    tblPiloto.getSelectionModel().getSelectedItem();
+            Formula1DTO piloto = tblPiloto.getSelectionModel().getSelectedItem();
 
             if (piloto != null) {
-
                 piloto.setNome(txtNome.getText());
                 piloto.setNacionalidade(txtNacionalidade.getText());
                 piloto.setEquipe(txtEquipe.getText());
-                piloto.setAtivo(Boolean.parseBoolean(txtAtivo.getText()));
+                piloto.setAtivo(cbAtivo.isSelected());
 
                 if (dao.atualizarPiloto(piloto)) {
-                    carregarTabela();
-                    limparCampos();
+                    carregarPilotos();
+                    limparCamposFormulario();
                     logger.info("Piloto atualizado");
                 }
             }
-
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Erro ao atualizar piloto", e);
         }
@@ -111,39 +108,44 @@ public class MainController {
 
     @FXML
     private void btnDeletarAction(ActionEvent event) {
-
         try {
+            Formula1DTO piloto = tblPiloto.getSelectionModel().getSelectedItem();
 
-            Formula1DTO piloto =
-                    tblPiloto.getSelectionModel().getSelectedItem();
-
-            if (piloto != null &&
-                    dao.deletarPiloto(piloto.getId())) {
-
-                carregarTabela();
-                limparCampos();
-
+            if (piloto != null && dao.deletarPiloto(piloto.getId())) {
+                carregarPilotos();
+                limparCamposFormulario();
                 logger.info("Piloto deletado");
             }
-
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Erro ao deletar piloto", e);
         }
     }
 
-    private void carregarTabela() {
+    @FXML
+    private void btnLimparAction(ActionEvent event) {
+        try {
+            for (Formula1DTO piloto : listaPilotos) {
+                dao.deletarPiloto(piloto.getId());
+            }
+            listaPilotos.clear();
+            limparCamposFormulario();
+            logger.info("Todos os dados foram deletados do banco e a tabela foi limpa.");
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Erro ao limpar e deletar os dados", e);
+        }
+    }
 
+    private void carregarPilotos() {
         listaPilotos.clear();
         listaPilotos.addAll(dao.listarPilotos());
-
         tblPiloto.setItems(listaPilotos);
     }
 
-    private void limparCampos() {
-
+    private void limparCamposFormulario() {
+        tblPiloto.getSelectionModel().clearSelection();
         txtNome.clear();
         txtNacionalidade.clear();
         txtEquipe.clear();
-        txtAtivo.clear();
+        cbAtivo.setSelected(false);
     }
 }
