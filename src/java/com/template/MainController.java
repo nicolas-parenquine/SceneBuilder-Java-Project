@@ -124,7 +124,6 @@ public class MainController {
     @FXML
     private void btnLimparAction(ActionEvent event) {
         try {
-            // Modificado: Agora apenas limpa os campos visuais, sem deletar nada do banco.
             limparCamposFormulario();
             logger.info("Campos limpos com sucesso.");
         } catch (Exception e) {
