@@ -124,14 +124,11 @@ public class MainController {
     @FXML
     private void btnLimparAction(ActionEvent event) {
         try {
-            for (Formula1DTO piloto : listaPilotos) {
-                dao.deletarPiloto(piloto.getId());
-            }
-            listaPilotos.clear();
+            // Modificado: Agora apenas limpa os campos visuais, sem deletar nada do banco.
             limparCamposFormulario();
-            logger.info("Todos os dados foram deletados do banco e a tabela foi limpa.");
+            logger.info("Campos limpos com sucesso.");
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Erro ao limpar e deletar os dados", e);
+            logger.log(Level.SEVERE, "Erro ao limpar os campos", e);
         }
     }
 
