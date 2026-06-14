@@ -8,8 +8,10 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,6 +25,7 @@ public class MainController {
     @FXML private TextField txtNacionalidade;
     @FXML private TextField txtEquipe;
     @FXML private CheckBox cbAtivo;
+    @FXML private Label lblMensagem;
 
     @FXML private TableView<Formula1DTO> tblPiloto;
 
@@ -47,6 +50,9 @@ public class MainController {
 
         try {
             carregarPilotos();
+
+            txtNome.requestFocus();
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Erro ao carregar pilotos na inicialização", e);
         }
@@ -61,6 +67,11 @@ public class MainController {
             txtNacionalidade.setText(piloto.getNacionalidade());
             txtEquipe.setText(piloto.getEquipe());
             cbAtivo.setSelected(piloto.isAtivo());
+
+            if (lblMensagem != null) {
+                lblMensagem.setTextFill(Color.web("#3498DB"));
+                lblMensagem.setText("Piloto selecionado.");
+            }
             logger.info("Campos preenchidos via clique na tabela para o piloto ID: " + piloto.getId());
         }
     }
@@ -77,9 +88,14 @@ public class MainController {
             if (dao.cadastrarPiloto(dto)) {
                 carregarPilotos();
                 limparCamposFormulario();
+
+                exibirMensagem("Piloto cadastrado com sucesso!", "#2ECC71");
+                txtNome.requestFocus();
+
                 logger.info("Piloto criado");
             }
         } catch (Exception e) {
+            exibirMensagem("Erro ao cadastrar piloto.", "#E74C3C");
             logger.log(Level.SEVERE, "Erro ao criar piloto", e);
         }
     }
@@ -98,10 +114,18 @@ public class MainController {
                 if (dao.atualizarPiloto(piloto)) {
                     carregarPilotos();
                     limparCamposFormulario();
-                    logger.info("Piloto atualizado");
+
+                    // UX: Mensagem de Sucesso e Foco devolvido ao primeiro campo
+                    exibirMensagem("Piloto atualizado com sucesso!", "#3498DB");
+                    txtNome.requestFocus();
+
+                    logger.info("Piloto updated");
                 }
+            } else {
+                exibirMensagem("Selecione um piloto na tabela para atualizar.", "#747D8C");
             }
         } catch (Exception e) {
+            exibirMensagem("Erro ao atualizar piloto.", "#E74C3C");
             logger.log(Level.SEVERE, "Erro ao atualizar piloto", e);
         }
     }
@@ -111,12 +135,22 @@ public class MainController {
         try {
             Formula1DTO piloto = tblPiloto.getSelectionModel().getSelectedItem();
 
-            if (piloto != null && dao.deletarPiloto(piloto.getId())) {
-                carregarPilotos();
-                limparCamposFormulario();
-                logger.info("Piloto deletado");
+            if (piloto != null) {
+                if (dao.deletarPiloto(piloto.getId())) {
+                    carregarPilotos();
+                    limparCamposFormulario();
+
+                    // UX: Mensagem de Sucesso e Foco devolvido ao primeiro campo
+                    exibirMensagem("Piloto deletado com sucesso!", "#E74C3C");
+                    txtNome.requestFocus();
+
+                    logger.info("Piloto deletado");
+                }
+            } else {
+                exibirMensagem("Selecione um piloto na tabela para deletar.", "#747D8C");
             }
         } catch (Exception e) {
+            exibirMensagem("Erro ao deletar piloto.", "#E74C3C");
             logger.log(Level.SEVERE, "Erro ao deletar piloto", e);
         }
     }
@@ -125,6 +159,11 @@ public class MainController {
     private void btnLimparAction(ActionEvent event) {
         try {
             limparCamposFormulario();
+
+            // UX: Limpa o texto de feedback e joga o cursor de volta para o Nome
+            if (lblMensagem != null) lblMensagem.setText("");
+            txtNome.requestFocus();
+
             logger.info("Campos limpos com sucesso.");
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Erro ao limpar os campos", e);
@@ -143,5 +182,12 @@ public class MainController {
         txtNacionalidade.clear();
         txtEquipe.clear();
         cbAtivo.setSelected(false);
+    }
+
+    private void exibirMensagem(String texto, String corHex) {
+        if (lblMensagem != null) {
+            lblMensagem.setTextFill(Color.web(corHex));
+            lblMensagem.setText(texto);
+        }
     }
 }
