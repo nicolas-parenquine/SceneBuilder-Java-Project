@@ -1,4 +1,4 @@
-package com.template;
+package com.template.model;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
