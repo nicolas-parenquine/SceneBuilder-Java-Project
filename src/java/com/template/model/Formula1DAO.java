@@ -12,51 +12,93 @@ import java.util.logging.Logger;
 public class Formula1DAO {
 
     private static final Logger logger =
-            Logger.getLogger(Formula1DAO.class.getName());
+            Logger.getLogger(
+                    Formula1DAO.class.getName()
+            );
 
-    // CREATE
-    public boolean cadastrarPiloto(Formula1DTO dto) {
+    /**
+     * Cadastra um novo piloto.
+     */
+    public boolean cadastrarPiloto(
+            Formula1DTO dto) {
 
         String sql =
-                "INSERT INTO pilotos (nome, nacionalidade, equipe, ativo) VALUES (?, ?, ?, ?)";
+                "INSERT INTO pilotos " +
+                        "(nome, nacionalidade, equipe, ativo) " +
+                        "VALUES (?, ?, ?, ?)";
 
         try (
-                Connection con = new Conexao().conectaBD();
-                PreparedStatement ps = con.prepareStatement(sql)
+                Connection con =
+                        new Conexao().conectaBD();
+
+                PreparedStatement ps =
+                        con.prepareStatement(sql)
         ) {
 
-            ps.setString(1, dto.getNome());
-            ps.setString(2, dto.getNacionalidade());
-            ps.setString(3, dto.getEquipe());
-            ps.setBoolean(4, dto.isAtivo());
+            ps.setString(
+                    1,
+                    dto.getNome()
+            );
 
-            int linhasAfetadas = ps.executeUpdate();
+            ps.setString(
+                    2,
+                    dto.getNacionalidade()
+            );
 
-            logger.info("Piloto cadastrado com sucesso");
+            ps.setString(
+                    3,
+                    dto.getEquipe()
+            );
+
+            ps.setBoolean(
+                    4,
+                    dto.isAtivo()
+            );
+
+            int linhasAfetadas =
+                    ps.executeUpdate();
+
+            logger.info(
+                    "Piloto cadastrado com sucesso"
+            );
 
             return linhasAfetadas > 0;
 
         } catch (SQLException e) {
 
-            logger.log(Level.SEVERE,
-                    "Erro ao cadastrar piloto", e);
+            logger.log(
+                    Level.SEVERE,
+                    "Erro ao cadastrar piloto",
+                    e
+            );
 
-            return false;
+            throw new RuntimeException(
+                    "Erro ao cadastrar piloto.",
+                    e
+            );
         }
     }
 
-    // READ
+    /**
+     * Lista todos os pilotos cadastrados.
+     */
     public List<Formula1DTO> listarPilotos() {
 
-        String sql = "SELECT * FROM pilotos";
+        String sql =
+                "SELECT * FROM pilotos";
 
         List<Formula1DTO> listaPilotos =
                 new ArrayList<>();
 
         try (
-                Connection con = new Conexao().conectaBD();
-                PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()
+                Connection con =
+                        new Conexao().conectaBD();
+
+                PreparedStatement ps =
+                        con.prepareStatement(sql);
+
+                ResultSet rs =
+                        ps.executeQuery()
         ) {
 
             while (rs.next()) {
@@ -64,87 +106,160 @@ public class Formula1DAO {
                 Formula1DTO dto =
                         new Formula1DTO();
 
-                dto.setId(rs.getInt("id"));
-                dto.setNome(rs.getString("nome"));
+                dto.setId(
+                        rs.getInt("id")
+                );
+
+                dto.setNome(
+                        rs.getString("nome")
+                );
+
                 dto.setNacionalidade(
                         rs.getString("nacionalidade")
                 );
-                dto.setEquipe(rs.getString("equipe"));
-                dto.setAtivo(rs.getBoolean("ativo"));
+
+                dto.setEquipe(
+                        rs.getString("equipe")
+                );
+
+                dto.setAtivo(
+                        rs.getBoolean("ativo")
+                );
 
                 listaPilotos.add(dto);
             }
 
-            logger.info("Lista de pilotos carregada");
+            logger.info(
+                    "Lista de pilotos carregada"
+            );
+
+            return listaPilotos;
 
         } catch (SQLException e) {
 
-            logger.log(Level.SEVERE,
-                    "Erro ao listar pilotos", e);
-        }
+            logger.log(
+                    Level.SEVERE,
+                    "Erro ao listar pilotos",
+                    e
+            );
 
-        return listaPilotos;
+            throw new RuntimeException(
+                    "Erro ao listar pilotos.",
+                    e
+            );
+        }
     }
 
-    // UPDATE
-    public boolean atualizarPiloto(Formula1DTO dto) {
+    /**
+     * Atualiza um piloto existente.
+     */
+    public boolean atualizarPiloto(
+            Formula1DTO dto) {
 
         String sql =
-                "UPDATE pilotos SET nome=?, nacionalidade=?, equipe=?, ativo=? WHERE id=?";
+                "UPDATE pilotos " +
+                        "SET nome=?, nacionalidade=?, equipe=?, ativo=? " +
+                        "WHERE id=?";
 
         try (
-                Connection con = new Conexao().conectaBD();
-                PreparedStatement ps = con.prepareStatement(sql)
+                Connection con =
+                        new Conexao().conectaBD();
+
+                PreparedStatement ps =
+                        con.prepareStatement(sql)
         ) {
 
-            ps.setString(1, dto.getNome());
-            ps.setString(2, dto.getNacionalidade());
-            ps.setString(3, dto.getEquipe());
-            ps.setBoolean(4, dto.isAtivo());
-            ps.setInt(5, dto.getId());
+            ps.setString(
+                    1,
+                    dto.getNome()
+            );
+
+            ps.setString(
+                    2,
+                    dto.getNacionalidade()
+            );
+
+            ps.setString(
+                    3,
+                    dto.getEquipe()
+            );
+
+            ps.setBoolean(
+                    4,
+                    dto.isAtivo()
+            );
+
+            ps.setInt(
+                    5,
+                    dto.getId()
+            );
 
             int linhasAfetadas =
                     ps.executeUpdate();
 
-            logger.info("Piloto atualizado");
+            logger.info(
+                    "Piloto atualizado"
+            );
 
             return linhasAfetadas > 0;
 
         } catch (SQLException e) {
 
-            logger.log(Level.SEVERE,
-                    "Erro ao atualizar piloto", e);
+            logger.log(
+                    Level.SEVERE,
+                    "Erro ao atualizar piloto",
+                    e
+            );
 
-            return false;
+            throw new RuntimeException(
+                    "Erro ao atualizar piloto.",
+                    e
+            );
         }
     }
 
-    // DELETE
+    /**
+     * Deleta um piloto pelo ID.
+     */
     public boolean deletarPiloto(int id) {
 
         String sql =
                 "DELETE FROM pilotos WHERE id=?";
 
         try (
-                Connection con = new Conexao().conectaBD();
-                PreparedStatement ps = con.prepareStatement(sql)
+                Connection con =
+                        new Conexao().conectaBD();
+
+                PreparedStatement ps =
+                        con.prepareStatement(sql)
         ) {
 
-            ps.setInt(1, id);
+            ps.setInt(
+                    1,
+                    id
+            );
 
             int linhasAfetadas =
                     ps.executeUpdate();
 
-            logger.info("Piloto deletado");
+            logger.info(
+                    "Piloto deletado"
+            );
 
             return linhasAfetadas > 0;
 
         } catch (SQLException e) {
 
-            logger.log(Level.SEVERE,
-                    "Erro ao deletar piloto", e);
+            logger.log(
+                    Level.SEVERE,
+                    "Erro ao deletar piloto",
+                    e
+            );
 
-            return false;
+            throw new RuntimeException(
+                    "Erro ao deletar piloto.",
+                    e
+            );
         }
     }
 }

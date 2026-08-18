@@ -1,12 +1,10 @@
 package com.template.controller;
 
-import com.template.model.Formula1DAO;
 import com.template.model.Formula1DTO;
+import com.template.service.PilotoService;
 import com.template.util.DialogUtil;
-import com.template.validator.PilotoValidator;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
@@ -25,6 +23,9 @@ public class MainController {
 
     private static final Logger logger =
             Logger.getLogger(MainController.class.getName());
+
+    private final PilotoService pilotoService =
+            new PilotoService();
 
     @FXML
     private TextField txtNome;
@@ -62,256 +63,339 @@ public class MainController {
     @FXML
     private void initialize() {
 
-        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
-        colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
-        colNacionalidade.setCellValueFactory(new PropertyValueFactory<>("nacionalidade"));
-        colEquipe.setCellValueFactory(new PropertyValueFactory<>("equipe"));
-        colAtivo.setCellValueFactory(new PropertyValueFactory<>("ativo"));
+        configurarTabela();
 
         try {
-
             carregarPilotos();
             txtNome.requestFocus();
 
         } catch (Exception e) {
 
-            logger.log(Level.SEVERE, "Erro ao carregar pilotos", e);
+            logger.log(
+                    Level.SEVERE,
+                    "Erro ao carregar pilotos",
+                    e
+            );
 
-            DialogUtil.mostrarErro("Erro ao carregar pilotos.");
+            DialogUtil.mostrarErro(
+                    "Erro ao carregar pilotos."
+            );
         }
     }
 
+    /**
+     * Configura as colunas da tabela.
+     */
+    private void configurarTabela() {
+
+        colId.setCellValueFactory(
+                new PropertyValueFactory<>("id")
+        );
+
+        colNome.setCellValueFactory(
+                new PropertyValueFactory<>("nome")
+        );
+
+        colNacionalidade.setCellValueFactory(
+                new PropertyValueFactory<>("nacionalidade")
+        );
+
+        colEquipe.setCellValueFactory(
+                new PropertyValueFactory<>("equipe")
+        );
+
+        colAtivo.setCellValueFactory(
+                new PropertyValueFactory<>("ativo")
+        );
+    }
+
+    /**
+     * Carrega os dados do piloto selecionado
+     * nos campos do formulário.
+     */
     @FXML
     private void carregarCampos(MouseEvent event) {
 
-        Formula1DTO piloto = tblPiloto.getSelectionModel().getSelectedItem();
+        Formula1DTO piloto =
+                tblPiloto.getSelectionModel()
+                        .getSelectedItem();
 
-        if (piloto != null) {
-
-            txtNome.setText(piloto.getNome());
-            txtNacionalidade.setText(piloto.getNacionalidade());
-            txtEquipe.setText(piloto.getEquipe());
-            cbAtivo.setSelected(piloto.isAtivo());
-
-            mostrarMensagem("Piloto selecionado.", "#3498DB");
+        if (piloto == null) {
+            return;
         }
+
+        txtNome.setText(
+                piloto.getNome()
+        );
+
+        txtNacionalidade.setText(
+                piloto.getNacionalidade()
+        );
+
+        txtEquipe.setText(
+                piloto.getEquipe()
+        );
+
+        cbAtivo.setSelected(
+                piloto.isAtivo()
+        );
+
+        mostrarMensagem(
+                "Piloto selecionado.",
+                "#3498DB"
+        );
     }
 
-    // CREATE
+    /**
+     * Cadastra um novo piloto.
+     */
     @FXML
     private void btnCriarAction(ActionEvent event) {
 
         try {
 
-            Formula1DTO formula1DTO = new Formula1DTO();
+            Formula1DTO piloto =
+                    obterPilotoDoFormulario();
 
-            formula1DTO.setNome(txtNome.getText());
-            formula1DTO.setNacionalidade(txtNacionalidade.getText());
-            formula1DTO.setEquipe(txtEquipe.getText());
-            formula1DTO.setAtivo(cbAtivo.isSelected());
+            pilotoService.cadastrarPiloto(piloto);
 
-            if (!PilotoValidator.validarCamposNulos(formula1DTO)) {
+            atualizarTelaAposOperacao(
+                    "Piloto cadastrado com sucesso!",
+                    "#2ECC71"
+            );
 
-                DialogUtil.mostrarAviso(
-                        "Preencha todos os campos antes de prosseguir."
-                );
+        } catch (IllegalArgumentException e) {
 
-                return;
-            }
-
-            if (!PilotoValidator.validarDadosPiloto(formula1DTO)) {
-
-                DialogUtil.mostrarAviso(
-                        "Os campos devem possuir pelo menos 3 caracteres."
-                );
-
-                return;
-            }
-
-            Formula1DAO formula1DAO = new Formula1DAO();
-
-            if (formula1DAO.cadastrarPiloto(formula1DTO)) {
-
-                carregarPilotos();
-                limparCamposFormulario();
-
-                mostrarMensagem(
-                        "Piloto cadastrado com sucesso!",
-                        "#2ECC71"
-                );
-
-                txtNome.requestFocus();
-            }
+            DialogUtil.mostrarAviso(
+                    e.getMessage()
+            );
 
         } catch (Exception e) {
 
-            logger.log(Level.SEVERE, "Erro ao cadastrar piloto", e);
+            logger.log(
+                    Level.SEVERE,
+                    "Erro ao cadastrar piloto",
+                    e
+            );
 
-            DialogUtil.mostrarErro("Erro ao cadastrar piloto.");
+            DialogUtil.mostrarErro(
+                    "Erro ao cadastrar piloto."
+            );
         }
     }
 
-    // UPDATE
+    /**
+     * Atualiza o piloto selecionado.
+     */
     @FXML
     private void btnAtualizarAction(ActionEvent event) {
 
-        try {
+        Formula1DTO piloto =
+                tblPiloto.getSelectionModel()
+                        .getSelectedItem();
 
-            Formula1DTO piloto =
-                    tblPiloto.getSelectionModel().getSelectedItem();
-
-            if (piloto != null) {
-
-                piloto.setNome(txtNome.getText());
-                piloto.setNacionalidade(txtNacionalidade.getText());
-                piloto.setEquipe(txtEquipe.getText());
-                piloto.setAtivo(cbAtivo.isSelected());
-
-                if (!PilotoValidator.validarCamposNulos(piloto)) {
-
-                    DialogUtil.mostrarAviso(
-                            "Preencha todos os campos antes de prosseguir."
-                    );
-
-                    return;
-                }
-
-                if (!PilotoValidator.validarDadosPiloto(piloto)) {
-
-                    DialogUtil.mostrarAviso(
-                            "Os campos devem possuir pelo menos 3 caracteres."
-                    );
-
-                    return;
-                }
-
-                Formula1DAO formula1DAO = new Formula1DAO();
-
-                if (formula1DAO.atualizarPiloto(piloto)) {
-
-                    carregarPilotos();
-                    limparCamposFormulario();
-
-                    mostrarMensagem(
-                            "Piloto atualizado com sucesso!",
-                            "#3498DB"
-                    );
-
-                    txtNome.requestFocus();
-                }
-
-            } else {
-
-                mostrarMensagem(
-                        "Selecione um piloto para atualizar.",
-                        "#747D8C"
-                );
-            }
-
-        } catch (Exception e) {
-
-            logger.log(Level.SEVERE, "Erro ao atualizar piloto", e);
-
-            DialogUtil.mostrarErro("Erro ao atualizar piloto.");
-        }
-    }
-
-    // DELETE
-    @FXML
-    private void btnDeletarAction(ActionEvent event) {
-
-        try {
-
-            Formula1DTO piloto =
-                    tblPiloto.getSelectionModel().getSelectedItem();
-
-            if (piloto != null) {
-
-                Formula1DAO formula1DAO = new Formula1DAO();
-
-                if (formula1DAO.deletarPiloto(piloto.getId())) {
-
-                    carregarPilotos();
-                    limparCamposFormulario();
-
-                    mostrarMensagem(
-                            "Piloto deletado com sucesso!",
-                            "#E74C3C"
-                    );
-
-                    txtNome.requestFocus();
-                }
-
-            } else {
-
-                mostrarMensagem(
-                        "Selecione um piloto para deletar.",
-                        "#747D8C"
-                );
-            }
-
-        } catch (Exception e) {
-
-            logger.log(Level.SEVERE, "Erro ao deletar piloto", e);
-
-            DialogUtil.mostrarErro("Erro ao deletar piloto.");
-        }
-    }
-
-    // CLEAR
-    @FXML
-    private void btnLimparAction(ActionEvent event) {
-
-        try {
-
-            limparCamposFormulario();
+        if (piloto == null) {
 
             mostrarMensagem(
-                    "Campos limpos.",
+                    "Selecione um piloto para atualizar.",
                     "#747D8C"
             );
 
-            txtNome.requestFocus();
+            return;
+        }
+
+        try {
+
+            preencherPilotoComFormulario(piloto);
+
+            pilotoService.atualizarPiloto(piloto);
+
+            atualizarTelaAposOperacao(
+                    "Piloto atualizado com sucesso!",
+                    "#3498DB"
+            );
+
+        } catch (IllegalArgumentException e) {
+
+            DialogUtil.mostrarAviso(
+                    e.getMessage()
+            );
 
         } catch (Exception e) {
 
-            logger.log(Level.SEVERE, "Erro ao limpar campos", e);
+            logger.log(
+                    Level.SEVERE,
+                    "Erro ao atualizar piloto",
+                    e
+            );
 
-            DialogUtil.mostrarErro("Erro ao limpar campos.");
+            DialogUtil.mostrarErro(
+                    "Erro ao atualizar piloto."
+            );
         }
     }
 
-    // LIST
-    private void carregarPilotos() {
+    /**
+     * Deleta o piloto selecionado.
+     */
+    @FXML
+    private void btnDeletarAction(ActionEvent event) {
 
-        Formula1DAO formula1DAO = new Formula1DAO();
+        Formula1DTO piloto =
+                tblPiloto.getSelectionModel()
+                        .getSelectedItem();
 
-        ObservableList<Formula1DTO> listaPilotos =
-                FXCollections.observableArrayList();
+        if (piloto == null) {
 
-        listaPilotos.addAll(formula1DAO.listarPilotos());
+            mostrarMensagem(
+                    "Selecione um piloto para deletar.",
+                    "#747D8C"
+            );
 
-        tblPiloto.setItems(listaPilotos);
+            return;
+        }
+
+        try {
+
+            pilotoService.deletarPiloto(
+                    piloto.getId()
+            );
+
+            atualizarTelaAposOperacao(
+                    "Piloto deletado com sucesso!",
+                    "#E74C3C"
+            );
+
+        } catch (Exception e) {
+
+            logger.log(
+                    Level.SEVERE,
+                    "Erro ao deletar piloto",
+                    e
+            );
+
+            DialogUtil.mostrarErro(
+                    "Erro ao deletar piloto."
+            );
+        }
     }
 
+    /**
+     * Limpa os campos do formulário.
+     */
+    @FXML
+    private void btnLimparAction(ActionEvent event) {
+
+        limparCamposFormulario();
+
+        mostrarMensagem(
+                "Campos limpos.",
+                "#747D8C"
+        );
+
+        txtNome.requestFocus();
+    }
+
+    /**
+     * Cria um DTO com os dados preenchidos
+     * no formulário.
+     */
+    private Formula1DTO obterPilotoDoFormulario() {
+
+        Formula1DTO piloto =
+                new Formula1DTO();
+
+        preencherPilotoComFormulario(piloto);
+
+        return piloto;
+    }
+
+    /**
+     * Transfere os dados da tela para o DTO.
+     */
+    private void preencherPilotoComFormulario(
+            Formula1DTO piloto) {
+
+        piloto.setNome(
+                txtNome.getText()
+        );
+
+        piloto.setNacionalidade(
+                txtNacionalidade.getText()
+        );
+
+        piloto.setEquipe(
+                txtEquipe.getText()
+        );
+
+        piloto.setAtivo(
+                cbAtivo.isSelected()
+        );
+    }
+
+    /**
+     * Carrega os pilotos na tabela.
+     */
+    private void carregarPilotos() {
+
+        tblPiloto.setItems(
+                FXCollections.observableArrayList(
+                        pilotoService.listarPilotos()
+                )
+        );
+    }
+
+    /**
+     * Atualiza a tela depois de uma operação
+     * de cadastro, alteração ou exclusão.
+     */
+    private void atualizarTelaAposOperacao(
+            String mensagem,
+            String cor) {
+
+        carregarPilotos();
+
+        limparCamposFormulario();
+
+        mostrarMensagem(
+                mensagem,
+                cor
+        );
+
+        txtNome.requestFocus();
+    }
+
+    /**
+     * Limpa os campos do formulário.
+     */
     private void limparCamposFormulario() {
 
-        tblPiloto.getSelectionModel().clearSelection();
+        tblPiloto.getSelectionModel()
+                .clearSelection();
 
         txtNome.clear();
+
         txtNacionalidade.clear();
+
         txtEquipe.clear();
 
         cbAtivo.setSelected(false);
     }
 
-    private void mostrarMensagem(String texto, String cor) {
+    /**
+     * Exibe uma mensagem na tela.
+     */
+    private void mostrarMensagem(
+            String texto,
+            String cor) {
 
         if (lblMensagem != null) {
 
             lblMensagem.setText(texto);
-            lblMensagem.setTextFill(Color.web(cor));
+
+            lblMensagem.setTextFill(
+                    Color.web(cor)
+            );
         }
     }
 }
-

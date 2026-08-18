@@ -4,45 +4,44 @@ import com.template.model.Formula1DTO;
 
 public class PilotoValidator {
 
-    // Valida se os campos estao nulos ou vazios
-    public static boolean validarCamposNulos(Formula1DTO piloto) {
-
-        return piloto != null
-                && piloto.getNome() != null
-                && !piloto.getNome().trim().isEmpty()
-                && piloto.getNacionalidade() != null
-                && !piloto.getNacionalidade().trim().isEmpty()
-                && piloto.getEquipe() != null
-                && !piloto.getEquipe().trim().isEmpty();
-    }
-
-
-    // Verifica se os textos possuem pelo menos 3 caracteres
-    public static boolean validarDadosPiloto(Formula1DTO piloto) {
+    /**
+     * Valida todos os dados necessários
+     * para um piloto.
+     */
+    public void validar(Formula1DTO piloto) {
 
         if (piloto == null) {
-            return false;
+
+            throw new IllegalArgumentException(
+                    "Piloto não informado."
+            );
         }
 
-        if (piloto.getNome() == null
-                || piloto.getNacionalidade() == null
-                || piloto.getEquipe() == null) {
+        if (campoVazio(piloto.getNome())
+                || campoVazio(piloto.getNacionalidade())
+                || campoVazio(piloto.getEquipe())) {
 
-            return false;
+            throw new IllegalArgumentException(
+                    "Preencha todos os campos antes de prosseguir."
+            );
         }
 
-        if (piloto.getNome().trim().length() < 3) {
-            return false;
-        }
+        if (piloto.getNome().trim().length() < 3
+                || piloto.getNacionalidade().trim().length() < 3
+                || piloto.getEquipe().trim().length() < 3) {
 
-        if (piloto.getNacionalidade().trim().length() < 3) {
-            return false;
+            throw new IllegalArgumentException(
+                    "Os campos devem possuir pelo menos 3 caracteres."
+            );
         }
+    }
 
-        if (piloto.getEquipe().trim().length() < 3) {
-            return false;
-        }
+    /**
+     * Verifica se um campo é nulo ou vazio.
+     */
+    private boolean campoVazio(String valor) {
 
-        return true;
+        return valor == null
+                || valor.trim().isEmpty();
     }
 }
