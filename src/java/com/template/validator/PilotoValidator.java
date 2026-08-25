@@ -2,46 +2,78 @@ package com.template.validator;
 
 import com.template.model.Formula1DTO;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PilotoValidator {
 
-    /**
-     * Valida todos os dados necessários
-     * para um piloto.
-     */
     public void validar(Formula1DTO piloto) {
 
         if (piloto == null) {
-
             throw new IllegalArgumentException(
                     "Piloto não informado."
             );
         }
 
-        if (campoVazio(piloto.getNome())
-                || campoVazio(piloto.getNacionalidade())
-                || campoVazio(piloto.getEquipe())) {
+        List<Validator<String>> validadores = new ArrayList<>();
 
-            throw new IllegalArgumentException(
-                    "Preencha todos os campos antes de prosseguir."
-            );
+        // Nome
+        validadores.add(
+                new CampoObrigatorioValidator(
+                        "Nome",
+                        piloto.getNome()
+                )
+        );
+
+        validadores.add(
+                new TamanhoMinimoValidator(
+                        "Nome",
+                        piloto.getNome(),
+                        3
+                )
+        );
+
+        // Nacionalidade
+        validadores.add(
+                new CampoObrigatorioValidator(
+                        "Nacionalidade",
+                        piloto.getNacionalidade()
+                )
+        );
+
+        validadores.add(
+                new TamanhoMinimoValidator(
+                        "Nacionalidade",
+                        piloto.getNacionalidade(),
+                        3
+                )
+        );
+
+        // Equipe
+        validadores.add(
+                new CampoObrigatorioValidator(
+                        "Equipe",
+                        piloto.getEquipe()
+                )
+        );
+
+        validadores.add(
+                new TamanhoMinimoValidator(
+                        "Equipe",
+                        piloto.getEquipe(),
+                        3
+                )
+        );
+
+        // Executa as validações
+        for (Validator<String> validador : validadores) {
+
+            if (!validador.validar(validador.getValor())) {
+
+                throw new IllegalArgumentException(
+                        validador.getMensagemErro()
+                );
+            }
         }
-
-        if (piloto.getNome().trim().length() < 3
-                || piloto.getNacionalidade().trim().length() < 3
-                || piloto.getEquipe().trim().length() < 3) {
-
-            throw new IllegalArgumentException(
-                    "Os campos devem possuir pelo menos 3 caracteres."
-            );
-        }
-    }
-
-    /**
-     * Verifica se um campo é nulo ou vazio.
-     */
-    private boolean campoVazio(String valor) {
-
-        return valor == null
-                || valor.trim().isEmpty();
     }
 }
