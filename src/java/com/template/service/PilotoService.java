@@ -1,12 +1,12 @@
 package com.template.service;
 
-import com.template.model.Formula1DAO;
-import com.template.model.Formula1DTO;
+import com.template.model.dao.Formula1DAO;
+import com.template.model.dto.Formula1DTO;
 import com.template.validator.PilotoValidator;
 
 import java.util.List;
 
-public class PilotoService {
+public class PilotoService implements IPilotoService{
 
     private final Formula1DAO dao;
     private final PilotoValidator validator;

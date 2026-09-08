@@ -1,11 +1,11 @@
 package com.template.validator;
 
-import com.template.model.Formula1DTO;
+import com.template.model.dto.Formula1DTO;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PilotoValidator {
+public class PilotoValidator implements IPilotoValidator {
 
     public void validar(Formula1DTO piloto) {
 

@@ -1,6 +1,6 @@
 package com.template.controller;
 
-import com.template.model.Formula1DTO;
+import com.template.model.dto.Formula1DTO;
 import com.template.service.PilotoService;
 import com.template.util.DialogUtil;
 

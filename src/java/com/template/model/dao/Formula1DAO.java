@@ -1,4 +1,7 @@
-package com.template.model;
+package com.template.model.dao;
+
+import com.template.model.Conexao;
+import com.template.model.dto.Formula1DTO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
